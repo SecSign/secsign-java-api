@@ -1,11 +1,15 @@
-package com.secsign.secsignid;
+package com.secsign.secsignid.example;
 
 import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
 
-import seccommerce.secpki.api.SecPKIApiException;
+import com.secsign.secsignid.AuthenticationSession;
+import com.secsign.secsignid.AuthenticationSessionState;
+import com.secsign.secsignid.SecSignIDApi;
+import com.secsign.secsignid.SecSignIDException;
+
 
 /**
  * Example for the SecSign ID API using a Swing Window
@@ -18,7 +22,7 @@ public class SecSignIDApiJavaSwingExample implements ActionListener{
     /**
      * The label to show the logo and access pass
      */
-    private JLabel image;
+    private JLabel accessPassImage;
 
     /**
      * the text field to input the secsign id
@@ -58,59 +62,65 @@ public class SecSignIDApiJavaSwingExample implements ActionListener{
 
                 String msg = "";
 
-                switch (state.getAuthSessionState()) {
-                case AuthenticationSessionState.FETCHED:
-                case AuthenticationSessionState.PENDING:
-                {
-                    msg = "The session is still pending. Please accept the session in the SecSignApp on your smart phone.";
-                    break;
-                }
-                case AuthenticationSessionState.DENIED:
-                {
-                    msg = "The session has been denied on the smart phone.";
-                    checkForState = false;
-                    break;
-                }
-                case AuthenticationSessionState.AUTHENTICATED:
-                {
-                    try
-                    {
-                        secSignIdApi.releaseAuthenticationSession();
-                    } catch (SecSignIDException e)
-                    {
-                        e.printStackTrace();
+                if(state != null){
+                    switch (state.getAuthSessionState()) {
+                        case AuthenticationSessionState.FETCHED:
+                        case AuthenticationSessionState.PENDING:
+                        {
+                            msg = "The session is still pending. Please accept the session in the SecSignApp on your smart phone.";
+                            break;
+                        }
+                        case AuthenticationSessionState.DENIED:
+                        {
+                            msg = "The session has been denied on the smart phone.";
+                            checkForState = false;
+                            break;
+                        }
+                        case AuthenticationSessionState.AUTHENTICATED:
+                        {
+                            try
+                            {
+                                secSignIdApi.releaseAuthenticationSession();
+                            } catch (SecSignIDException e)
+                            {
+                                e.printStackTrace();
+                            }
+                            msg = "Successfully Authenticated SecSign ID \""+state.getAuthenticatedSecSignId()+"\"";
+                            checkForState = false;
+                            break;
+                        }
+                        case AuthenticationSessionState.EXPIRED:
+                        {
+                            msg = "The session has expired.";
+                            checkForState = false;
+                            break;
+                        }
+                        case AuthenticationSessionState.CANCELED:
+                        {
+                            msg = "The session has been withdrawn by the service that had started the login.";
+                            checkForState = false;
+                            break;
+                        }
+                        case AuthenticationSessionState.INVALID:
+                        case AuthenticationSessionState.SUSPENDED:
+                        {
+                            // for example if a second session for the same user has been requested in between
+                            msg = "The SecSignID server has retracted the session for security reasons.";
+                            checkForState = false;
+                            break;
+                        }
+                        default:
+                        {
+                            // should not happen
+                            msg = "The state of the session is unknown.";
+                            checkForState = false;
+                            break;
+                        }
                     }
-                    msg = "Successfully Authenticated SecSign ID \""+state.getAuthenticatedSecSignId()+"\"";
+                } else {
+                    // could not get an authentication session state from id server
+                    msg = "Could not get an authentication session state from id server";
                     checkForState = false;
-                    break;
-                }
-                case AuthenticationSessionState.EXPIRED:
-                {
-                    msg = "The session has expired.";
-                    checkForState = false;
-                    break;
-                }
-                case AuthenticationSessionState.CANCELED:
-                {
-                    msg = "The session has been withdrawn by the service that had started the login.";
-                    checkForState = false;
-                    break;
-                }
-                case AuthenticationSessionState.INVALID:
-                case AuthenticationSessionState.SUSPENDED:
-                {
-                    // for example if a second session for the same user has been requested in between
-                    msg = "The SecSignID server has retracted the session for security reasons.";
-                    checkForState = false;
-                    break;
-                }
-                default:
-                {
-                    // should not happen
-                    msg = "The state of the session is unknown.";
-                    checkForState = false;
-                    break;
-                }
                 }
 
                 if (!checkForState)
@@ -118,7 +128,7 @@ public class SecSignIDApiJavaSwingExample implements ActionListener{
                     //Authentication finished. Reset GUI and show Msg
                     javax.swing.SwingUtilities.invokeLater(new Runnable() {
                         public void run() {
-                            image.setIcon(new ImageIcon("secsign_logo.png"));
+                            accessPassImage.setIcon(new ImageIcon("secsign_logo.png"));
                             loginButton.setEnabled(true);
                         }
                     });
@@ -143,7 +153,7 @@ public class SecSignIDApiJavaSwingExample implements ActionListener{
 
     /**
      * Main method to start the window
-     * @throws SecPKIApiException 
+     * @throws SecSignIDException 
      */
     public static void main(String[] args) throws SecSignIDException {
         new SecSignIDApiJavaSwingExample();
@@ -177,8 +187,8 @@ public class SecSignIDApiJavaSwingExample implements ActionListener{
         Container pane = frame.getContentPane();
 
         //Image
-        image = new JLabel(new ImageIcon("secsign_logo.png"));
-        pane.add(image, BorderLayout.CENTER);
+        accessPassImage = new JLabel(new ImageIcon("secsign_logo.png"));
+        pane.add(accessPassImage, BorderLayout.CENTER);
 
         //TextField
         secSignIdTextField = new JTextField();
@@ -207,23 +217,24 @@ public class SecSignIDApiJavaSwingExample implements ActionListener{
         if ("login".equals(e.getActionCommand())) {
 
             //Request a Session from the Server
-            AuthenticationSession session = null;
+            AuthenticationSession authSession = null;
             try
             {
-                session = secSignIdApi.requestAuthenticationSession(secSignIdTextField.getText(), "SecSignID Java integration example", "www.example.com", "127.0.0.1");
+                authSession = secSignIdApi.requestAuthenticationSession(secSignIdTextField.getText(), "SecSignID Java integration example", "www.example.com");
+                
             } catch (SecSignIDException e2)
             {
                 e2.printStackTrace();
                 JOptionPane.showMessageDialog(null, e2.getLocalizedMessage());
             }
 
-            if (session != null)
+            if (authSession != null)
             {
                 //Show the Access Pass
-                final byte[] passIcon = session.getAuthSessionIconData();
+                final byte[] passIcon = authSession.getAuthSessionIconData();
                 javax.swing.SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        image.setIcon(new ImageIcon(passIcon));
+                        accessPassImage.setIcon(new ImageIcon(passIcon));
                         loginButton.setEnabled(false);
                     }
                 });
