@@ -1,6 +1,10 @@
 
 package com.secsign.secsignid;
 
+import java.io.FileInputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,9 +51,34 @@ public final class SecSignIDApi {
      * @throws SecSignIDException 
      */
     public SecSignIDApi() throws SecSignIDException {
+        
+        // use default id server
+        this("secpkiapi.secsign.com", 25100);
+    }
+    
+    /**
+     * Constructor of the SecSign ID Api when to use an ID server which is not the default id server 
+     * @throws SecSignIDException 
+     */
+    public SecSignIDApi(String idServer, int idServerPort) throws SecSignIDException
+    {
+        // build properties instance...
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream("secpki.properties"));
+        } catch (Exception ex) {
+            if(log != null){
+                log.log(Level.SEVERE, "Could not load properties file, using defaults", ex);
+            }
+        }
+        
+        // overwrite the server property to use specified value e.g. when using an id-server inhouse
+        properties.put("seccommerce.secappserver.0", idServer);
+        properties.put("seccommerce.secappserverport.0", String.valueOf(idServerPort));
+        
         // create the SecPKI-API instance which can send requests to the SecSignID server
         try {
-            secPkiApi = new SecPKIApi();
+            secPkiApi = new SecPKIApi(properties);
         } catch (Exception ex) {
             String errorMessage =  "Cannot instantiate secpkiapi for communicattion with the SecSign ID server: " + ex.getMessage(); 
             if(log != null){
@@ -60,16 +89,17 @@ public final class SecSignIDApi {
         }
     }
     
+  
     /**
      * Requests an authentication session for given SecSign ID. The service info is displayed at the push notification on the smart phone.
-     * @param secSignID
+     * @param secSignID The SecSign ID for whom the authentication session is requested
      * @param serviceInfo The description of this service. Will be displayed in the web site and in the push notification.
      * @param serviceAddress The address of this service. Will be displayed in the SecSignApp on the smart phone.
      * @param browserIpAddr the IP address of the browser (user) requesting a authentication session
      * @return the complete authentication session
      * @throws SecSignIDException 
      */
-    public AuthenticationSession requestAuthenticationSession(String secSignID, String serviceInfo, String serviceAddress, String browserIpAddr) throws SecSignIDException
+    public AuthenticationSession requestAuthenticationSession(String secSignID, String serviceInfo, String serviceAddress) throws SecSignIDException
     {
         // build the request to get an authentication session for the SecSignID user
         ReqRequestAuthSession reqRequestAuthSession = new ReqRequestAuthSession();
@@ -78,6 +108,14 @@ public final class SecSignIDApi {
         reqRequestAuthSession.setServiceAddress(serviceAddress);
         reqRequestAuthSession.setServiceType(serviceType);
         reqRequestAuthSession.setPluginName(pluginName);
+        
+        
+        String browserIpAddr;
+        try {
+            browserIpAddr = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException ex1) {
+            browserIpAddr = "127.0.0.1";
+        }
         reqRequestAuthSession.setBrowserIpAddr(browserIpAddr);
         
         // send the request to the SecSign ID server
