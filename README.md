@@ -48,7 +48,9 @@ SecSignIDApi secSignIdApi = new SecSignIDApi();
 AuthenticationSession session = null;
 try
 {
-	session = secSignIdApi.requestAuthenticationSession(secSignIdTextField.getText(), "SecSignID Java integration example", "www.example.com", "127.0.0.1");
+	session = secSignIdApi.requestAuthenticationSession(secSignIdTextField.getText(), 
+														"SecSignID Java integration example", 
+														"www.example.com");
 }
 catch (SecSignIDException exception)
 {
@@ -56,6 +58,70 @@ catch (SecSignIDException exception)
 	JOptionPane.showMessageDialog(null, exception.getLocalizedMessage());
 }
         
+```
+
+Check the authentication session state whether the user has accepted the authentication request.
+
+```java
+// Get the State
+AuthenticationSessionState state = null;
+try
+{
+	state = secSignIdApi.getAuthenticationSessionState();
+} 
+catch (SecSignIDException exception)
+{
+	exception.printStackTrace();
+}
+
+
+```
+
+React to the authentication session state. In case the state is `AuthenticationSessionState.AUTHENTICATED` the user can be logged in at the underlying system.
+The underlying system might be a web application or a java standalone application. The object of type `AuthenticationSessionState` holds the authenticated SecSign ID.
+Usually this is the SecSign ID which was used to request an authentication session. But it is possible to log in with a so called [priority code](https://www.secsign.com/java-api-tutorial/)
+
+```java
+switch (state.getAuthSessionState()) {
+	case AuthenticationSessionState.FETCHED:
+	case AuthenticationSessionState.PENDING:
+	{
+		msg = "The session is still pending. Please accept the session in the SecSignApp on your smart phone.";
+		break;
+	}
+	case AuthenticationSessionState.DENIED:
+	{
+		msg = "The session has been denied on the smart phone.";
+		checkForState = false;
+		break;
+	}
+	case AuthenticationSessionState.AUTHENTICATED:
+	{
+		try
+		{
+			secSignIdApi.releaseAuthenticationSession();
+		} catch (SecSignIDException exception)
+		{
+			exception.printStackTrace();
+		}
+		msg = "Successfully Authenticated SecSign ID \""+state.getAuthenticatedSecSignId()+"\"";
+		checkForState = false;
+		break;
+	}
+}
+```
+
+If the user whises to cancel the whole authentication process, the process is canceled by using the Method 'SecSignIDApi.cancelAuthSession'
+
+```java
+try
+{
+	secSignIdApi.cancelAuthenticationSession();
+}
+catch (SecSignIDException exception)
+{
+	exception.printStackTrace();
+}
 ```
 
 
