@@ -22,13 +22,13 @@ import seccommerce.secpki.api.SecPKIApiException;
  * 
  * The class holds four methods to request a so called authentication session, to check the state of the session and to cancel and release the session.
  * 
- * @version 1.0
+ * @version 1.1
  * @author SecSign Technology Inc.
  */
 public final class SecSignIDApi {
 
     // a fix string representing the api version. it should match the version number if class comment
-    private static final String ApiVersion = "1.0";
+    private static final String ApiVersion = "1.1";
     
     /**
      * Public logger. The LoggerWrapper class can be overwritten so several logging mechanisms could be used

@@ -1,12 +1,11 @@
 package com.secsign.secsignid;
 
-/*
-* Class to gather all information about the state of a so called authentication session.
-* It contains the session state and if the user was successfully authenticated a SecSign ID.
-*
-* @version 1.0
-* @author SecSign Technologies Inc.
-*/
+/**
+ * Class to gather all information about the state of a so called authentication session.
+ * It contains the session state and if the user was successfully authenticated a SecSign ID.
+ *
+ * @author SecSign Technologies Inc.
+ */
 public class AuthenticationSessionState
 {
     //
@@ -71,8 +70,7 @@ public class AuthenticationSessionState
     private String authenticatedSecSignId;
 
     /**
-     * Gets the State of the Authentication Session (see constants)
-     * 
+     * Gets the state of the Authentication Session (see constants)
      * @return the authSessionState
      */
     public int getAuthSessionState() {
@@ -80,6 +78,7 @@ public class AuthenticationSessionState
     }
 
     /**
+     * Sets the authentication session state.
      * @param authSessionState the authSessionState to set
      */
     public void setAuthSessionState(int authSessionState) {
@@ -87,8 +86,8 @@ public class AuthenticationSessionState
     }
 
     /**
-     * The SecSignID after the use has successfully authenticated himself.
-     * (this can different to the String that was entered by the user because he might have entered a priority code) 
+     * The SecSignID after the user has successfully authenticated himself.
+     * (this can be different to the String that was entered by the user, because he might have entered a priority code) 
      * @return the authenticatedSecSignId
      */
     public String getAuthenticatedSecSignId() {

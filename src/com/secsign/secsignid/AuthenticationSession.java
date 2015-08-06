@@ -1,12 +1,11 @@
 package com.secsign.secsignid;
 
-/*
-* Class to gather all information about a so called authentication session.
-* It contains the access pass, a request id, a session id and the secsign id.
-*
-* @version 1.0
-* @author SecSign Technologies Inc.
-*/
+/**
+ * Class to gather all information about a so called authentication session.
+ * It contains the access pass, a request id, a session id and the secsign id.
+ *
+ * @author SecSign Technologies Inc.
+ */
 public final class AuthenticationSession {
     
     /* 
@@ -44,6 +43,7 @@ public final class AuthenticationSession {
     }
 
     /**
+     * Gets the secsign id for whom the authsession was created
      * @return the secSignId
      */
     public String getSecSignID() {
@@ -51,6 +51,7 @@ public final class AuthenticationSession {
     }
 
     /**
+     * Sets the secsign id for whom the authsession shall be created
      * @param secSignId the secSignId to set
      */
     public void setSecSignID(String secSignId) {
