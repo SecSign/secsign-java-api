@@ -5,7 +5,9 @@
 
 SecSign ID is a real two-factor authentication solution. It was designed to be simple, robust and fast. The reason for the simplicity is that it should be easely integrated
 in many environments. The SecSign ID Java Api can be used for Java Swing Applications, Java Applets or on server side in application 
-server e.g. Apache Tomcat, Oracle Glassfish in Java Server Pages or in Java Server faces.
+server e.g. Apache Tomcat, Oracle Glassfish in Java Server Pages or in Java Server faces. The idea behind that is to use OSGi (Open Services Gateway Initiative)
+Most of the application server uses OSGi conform APIs for modularization. So every application server or project using OSGi can use the SecSign Java Api to integrate a secure
+two factor authentication. Examples for other OSGi projects or application server are JBoss, Atlassian JIRA and Confluence, Oracle Weblogic or OpenEJB.
 
 
 This Java Api allows a secure login using a private key on a smart phone running SecSign ID by SecSign Technologies Inc.
